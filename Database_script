@@ -1,0 +1,193 @@
+DROP TABLE IF EXISTS bicycle_rent;
+DROP TABLE IF EXISTS rent;
+DROP TABLE IF EXISTS repair;
+DROP TABLE IF EXISTS rentmachine;
+DROP TABLE IF EXISTS admin_user;
+DROP TABLE IF EXISTS bicycle;
+DROP TABLE IF EXISTS dockingstation;
+DROP TABLE IF EXISTS type;
+DROP TABLE IF EXISTS producer;
+
+
+CREATE TABLE bicycle(
+bicycle_id INTEGER NOT NULL,
+battery_lvl DOUBLE,
+bicycle_price DOUBLE,
+producer_name VARCHAR(45),
+bicycle_regdate DATE,
+bicycle_km DOUBLE,
+bicycle_trips INTEGER,
+type_name VARCHAR(30), 
+under_repair BOOLEAN,
+ds_id INTEGER,
+CONSTRAINT bicycle_pk PRIMARY KEY(bicycle_id)
+);
+
+
+CREATE TABLE dockingstation(
+ds_id INTEGER NOT NULL,
+adress VARCHAR(60),
+charging_units INTEGER,
+kwh DOUBLE,
+CONSTRAINT dockingstation_pk PRIMARY KEY(ds_id)
+);
+
+CREATE TABLE producer(
+producer_name VARCHAR(45) NOT NULL,
+established_date DATE,
+CONSTRAINT producer_pk PRIMARY KEY(producer_name)
+);
+
+CREATE TABLE type(
+type_name VARCHAR(30) NOT NULL,
+type_desc TEXT,
+type_rentprice DOUBLE,
+CONSTRAINT type_pk PRIMARY KEY(type_name)
+);
+
+CREATE TABLE repair(
+repair_id INTEGER NOT NULL,
+bicycle_id INTEGER,
+sent_date DATE,
+received_date DATE,
+repair_price DOUBLE,
+desc_before TEXT,
+desc_after TEXT,
+CONSTRAINT repair_pk PRIMARY KEY(repair_id)
+);
+
+CREATE TABLE bicycle_rent(
+bicycle_id INTEGER NOT NULL,
+rent_id INTEGER NOT NULL,
+start_time DATETIME,
+end_time DATETIME,
+CONSTRAINT bicycle_rent_pk PRIMARY KEY(bicycle_id, rent_id, start_time)
+);
+
+CREATE TABLE rent(
+rent_id INTEGER NOT NULL,
+card_nr VARCHAR(16),
+rent_price DOUBLE,
+rentmachine_id INTEGER, 
+CONSTRAINT rent_pk PRIMARY KEY(rent_id)
+);
+
+CREATE TABLE rentmachine(
+rentmachine_id INTEGER NOT NULL,
+ds_id INTEGER,
+CONSTRAINT rentmachine_pk PRIMARY KEY(rentmachine_id)
+);
+
+CREATE TABLE admin_user(
+user_name VARCHAR(45) NOT NULL, 
+gen_hash VARCHAR(40),
+finished_hash VARCHAR(100),
+CONSTRAINT admin_user_pk PRIMARY KEY(user_name)
+);
+
+ALTER TABLE bicycle
+	ADD CONSTRAINT bicycle_producer_fk FOREIGN KEY(producer_name) REFERENCES producer(producer_name);
+
+ALTER TABLE bicycle 
+	ADD CONSTRAINT bicycle_type_fk FOREIGN KEY(type_name) REFERENCES type(type_name);
+
+ALTER TABLE bicycle
+	ADD CONSTRAINT bicycle_dockingstation_fk FOREIGN KEY(ds_id) REFERENCES dockingstation(ds_id);
+
+ALTER TABLE repair 
+	ADD CONSTRAINT repair_bicycle_fk FOREIGN KEY(bicycle_id) REFERENCES bicycle(bicycle_id);
+
+ALTER TABLE bicycle_rent
+	ADD CONSTRAINT bicycle_rent_bicycle_fk FOREIGN KEY(bicycle_id) REFERENCES bicycle(bicycle_id);
+
+ALTER TABLE bicycle_rent
+	ADD CONSTRAINT bicycle_rent_rent_fk FOREIGN KEY(rent_id) REFERENCES rent(rent_id);
+
+ALTER TABLE rent
+	ADD CONSTRAINT rent_rentmachine_fk FOREIGN KEY(rentmachine_id) REFERENCES rentmachine(rentmachine_id);
+
+ALTER TABLE rentmachine 
+	ADD CONSTRAINT rentmachine_dockingstation_fk FOREIGN KEY(ds_id) REFERENCES dockingstation(ds_id);
+
+
+INSERT INTO dockingstation VALUES(1,'Prinsens Gate', 20, 0);
+INSERT INTO rentmachine VALUES(1, 1);
+INSERT INTO type VALUES('Mid drive','Electrical components are on the frame. Gives advantages like can use whatever gear is on the bike, good wiegth distribution and it is easy to repair', 50);
+INSERT INTO producer VALUES('Skepphult', '1911-12-11');
+INSERT INTO bicycle VALUES(1, 100, 29900, 'Skepphult', '2018-03-15', 0, 0, 'Mid drive', 0, 1);
+INSERT INTO rent VALUES(1, '1463BC3', 208.3, 1);
+INSERT INTO bicycle_rent VALUES(1, 1, '2018-03-15 12:15:00', '2018-03-15 14:15:00');
+INSERT INTO bicycle VALUES(2, 100, 29900, 'Skepphult', '2018-03-15', 0, 0, 'Mid drive', 0, 1);
+INSERT INTO bicycle_rent VALUES(2, 1, '2018-03-15 12:15:00', '2018-03-15 14:25:00');
+
+ALTER TABLE bicycle DROP FOREIGN KEY bicycle_producer_fk;
+ALTER TABLE bicycle DROP FOREIGN KEY bicycle_type_fk;
+ALTER TABLE bicycle
+	ADD CONSTRAINT bicycle_producer_fk FOREIGN KEY(producer_name) REFERENCES producer(producer_name) ON DELETE CASCADE;
+ALTER TABLE bicycle
+	ADD CONSTRAINT bicycle_type_fk FOREIGN KEY(type_name) REFERENCES type(type_name) ON DELETE CASCADE;
+
+ALTER TABLE rentmachine DROP FOREIGN KEY rentmachine_dockingstation_fk;
+ALTER TABLE rentmachine
+	ADD CONSTRAINT rentmachine_dockingstation_fk FOREIGN KEY(ds_id) REFERENCES dockingstation(ds_id) ON DELETE CASCADE;
+
+ALTER TABLE repair DROP FOREIGN KEY repair_bicycle_fk;
+ALTER TABLE repair
+	ADD CONSTRAINT repair_bicycle_fk FOREIGN KEY(bicycle_id) REFERENCES bicycle(bicycle_id) ON DELETE SET NULL;
+
+ALTER TABLE rent DROP FOREIGN KEY rent_rentmachine_fk;
+ALTER TABLE rent
+	ADD CONSTRAINT rent_rentmachine_fk FOREIGN KEY(rentmachine_id) REFERENCES rentmachine(rentmachine_id) ON DELETE SET NULL;
+
+
+ALTER TABLE bicycle_rent DROP FOREIGN KEY bicycle_rent_bicycle_fk;
+DROP TABLE bicycle_rent;
+CREATE TABLE bicycle_rent(
+bicycle_rent_id INTEGER NOT NULL,
+bicycle_id INTEGER NULL,
+rent_id INTEGER NOT NULL,
+start_time DATETIME,
+end_time DATETIME,
+CONSTRAINT bicycle_rent_pk PRIMARY KEY(bicycle_rent_id)
+);
+ALTER TABLE bicycle_rent
+	ADD CONSTRAINT bicycle_rent_bicycle_fk FOREIGN KEY(bicycle_id) REFERENCES bicycle(bicycle_id) ON DELETE SET NULL;
+
+ALTER TABLE bicycle_rent
+	ADD CONSTRAINT bicycle_rent_rent_fk FOREIGN KEY(rent_id) REFERENCES rent(rent_id);
+
+INSERT INTO bicycle_rent VALUES(1, 1, 1, '2018-03-15 12:15:00', '2018-03-15 14:15:00');
+INSERT INTO bicycle_rent VALUES(2, 2, 1, '2018-03-15 12:15:00', '2018-03-15 14:25:00');
+
+ALTER TABLE bicycle
+ADD bicycle_lat double;
+
+ALTER TABLE bicycle
+ADD bicycle_lon double;
+
+UPDATE bicycle SET bicycle_lat = 63.4319864 WHERE bicycle_id = 1;
+UPDATE bicycle SET bicycle_lon = 10.3949004 WHERE bicycle_id = 1;
+UPDATE bicycle SET bicycle_lat = 63.4292466 WHERE bicycle_id = 2;
+UPDATE bicycle SET bicycle_lon = 10.388504 WHERE bicycle_id = 2;
+
+ALTER TABLE dockingstation
+ADD ds_lat double;
+
+ALTER TABLE dockingstation
+ADD ds_lon double;
+
+UPDATE dockingstation SET ds_lat = 63.4291285 WHERE ds_id = 1;
+UPDATE dockingstation SET ds_lon = 10.392392 WHERE ds_id = 1;
+
+CREATE TABLE properties(
+properties_set INTEGER NOT NULL AUTO_INCREMENT,
+deposit_value double,
+refresh_map_every_seconds int,
+CONSTRAINT properties_pk PRIMARY KEY(properties_set)
+);
+
+INSERT INTO properties VALUES(DEFAULT, 5000, 5);
+
+ALTER TABLE bicycle_rent DROP FOREIGN KEY bicycle_rent_rent_fk;
+ALTER TABLE bicycle_rent
+	ADD CONSTRAINT bicycle_rent_rent_fk FOREIGN KEY(rent_id) REFERENCES rent(rent_id) ON DELETE CASCADE;

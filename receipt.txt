@@ -1,0 +1,15 @@
+
+This is your receipt for purchase made: 2018-04-22 00:11:05
+Receipt printed: Sun Apr 22 20:07:01 CEST 2018
+------------------------------------------------------------
+El-Bicycle type: Mid drive
+Price pr hour: 50.0
+Hours rented 0.4361
+Price: 21.80555555
+------------------------------------------------------------
+El-Bicycle type: Mid drive
+Price pr hour: 50.0
+Hours rented 0.5036
+Price: 25.18055555
+------------------------------------------------------------
+Before MVA: 35.24   MVA-%: 25%   MVA: 11.75   Total price: 46.99
